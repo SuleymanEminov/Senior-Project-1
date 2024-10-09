@@ -1,27 +1,19 @@
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
-import { useState, useEffect } from 'react';
+import {BrowserRouter, Routes, Route} from 'react-router-dom'
+import {Home} from "./component/home";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    fetch('http://localhost:8000/test/')
-      .then(res => res.json())
-      .then(data => setData(data.data));
-  })
-
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <h1>Tennis court booking</h1>
-        <p>Book a court easily in this app</p>
-
-        <p>{data}</p>
-      </header>
-    </div>
-  );
+  document.title = "Tennis Court Booking";
+  return <BrowserRouter>
+  <Routes>
+    <Route path="/" element={<Home/>}/>
+    <Route path="/home" element={<Home/>}/>
+    <Route path="*" element={<h1>Not Found</h1>}/>
+  </Routes>
+  <h1>Hello</h1>
+</BrowserRouter>;
 }
 
 export default App;
