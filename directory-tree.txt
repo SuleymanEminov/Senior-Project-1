@@ -1,0 +1,28 @@
+.
+├── backend
+│   ├── api
+│   ├── backend
+│   ├── manage.py
+│   └── requirements.txt
+├── frontend
+│   ├── README.md
+│   ├── node_modules
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   └── src
+├── venv
+│   ├── bin
+│   ├── include
+│   ├── lib
+│   └── pyvenv.cfg
+├── docker-compose.yml
+├── Dockerfile.backend
+├── Dockerfile.frontend
+├── README.md
+
+
+
+
+
+
