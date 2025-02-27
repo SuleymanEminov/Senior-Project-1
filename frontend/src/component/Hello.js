@@ -1,29 +1,60 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../interceptors/Interceptor";
 
 export const Hello = () => {
-  const [username, setUsername] = useState("");
-  const token = localStorage.getItem("access_token"); // Assuming token is stored in localStorage
+  const [clubs, setClubs] = useState([]);
+  const [user, setUser] = useState(null);
+  const token = localStorage.getItem("access_token"); // Ensure token exists
 
-  api.get("http://localhost:8000/api/user/", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  useEffect(() => {
+    // Fetch the current user
+    api.get("http://localhost:8000/api/users/current_user", {
+      headers: { Authorization: `Bearer ${token}` },
     })
     .then((response) => {
-      console.log("User data:", response.data.username);
-      setUsername(response.data.username);
+      console.log("User data:", response.data);
+      setUser(response.data);
     })
     .catch((error) => {
       console.error("Error fetching user data:", error);
     });
 
-  return (
-    <div className="form-signin mt-5 text-center">
-      <h1 className="h3 mb-3 fw-normal">Tennis Court Booking</h1>
+    // Fetch clubs
+    api.get("http://localhost:8000/api/clubs", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then((response) => {
+      console.log("Clubs data:", response.data);
+      setClubs(response.data);
+    })
+    .catch((error) => {
+      console.error("Error fetching clubs:", error);
+    });
 
-      <h3>hello {username}</h3>
+  }, [token]); // Runs when `token` changes
+
+  return (
+    <div>
+      <h1>Hello, {user?.username || "Guest"}</h1>
+      <div className="form-signin mt-5 text-center">
+        <h1 className="h3 mb-3 fw-normal">Tennis Court Booking</h1>
+        {clubs.length > 0 ? (
+          clubs.map((club) => (
+            <div key={club.id}>
+              <h2>{club.name}</h2>
+              <p>
+                {club.address}, {club.city}, {club.state}
+              </p>
+              <p>Phone: {club.phone_number}</p>
+              <p>
+                Website: <a href={club.website}>{club.website}</a>
+              </p>
+            </div>
+          ))
+        ) : (
+          <p>Loading...</p>
+        )}
+      </div>
     </div>
   );
 };

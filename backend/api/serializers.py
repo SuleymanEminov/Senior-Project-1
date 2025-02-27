@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Club
+from .models import Club, Court
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,7 +25,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
+class CourtSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Court
+        fields = ['id', 'court_type', 'court_number']
+
 class ClubSerializer(serializers.ModelSerializer):
+    court_details = CourtSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Club
         fields = [
@@ -39,8 +46,16 @@ class ClubSerializer(serializers.ModelSerializer):
             "phone_number",
             "email",
             "website",
-            "courts",
+            "courts_summary",
+            "court_details",
             "created_at",
             "updated_at",
             "is_approved",
         ]
+        read_only_fields = ['manager', 'is_approved']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            validated_data['manager'] = request.user
+        return super().create(validated_data)

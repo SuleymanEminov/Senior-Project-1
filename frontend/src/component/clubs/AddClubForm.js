@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./AddClubForm.css"; // Custom styling
+import { useNavigate } from "react-router-dom";
+import "./AddClubForm.css";
 
 export const AddClubForm = () => {
   const [formData, setFormData] = useState({
@@ -8,19 +9,66 @@ export const AddClubForm = () => {
     address: "",
     city: "",
     state: "",
-    postalCode: "",
-    country: "",
+    zip_code: "",
     email: "",
-    phone: "",
+    phone_number: "",
     website: "",
   });
 
   const [courts, setCourts] = useState([{ type: "", count: "" }]);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const navigate = useNavigate();
   const token = localStorage.getItem("access_token");
 
   const allCourtTypes = ["hard", "clay", "grass"];
+
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!token) {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Use the clubs endpoint to verify token validity
+        // This will return a 401 if token is invalid
+        await axios.get("http://localhost:8000/api/clubs/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Authentication error:", error);
+        // If we get a 401 Unauthorized, token is invalid
+        if (error.response && error.response.status === 401) {
+          setIsAuthenticated(false);
+          localStorage.removeItem("access_token");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [token]);
+
+  // Rest of the component remains the same...
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/login", { 
+        state: { message: "Please login to register a club" } 
+      });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,43 +95,49 @@ export const AddClubForm = () => {
     e.preventDefault();
 
     const dataToSubmit = {
-        ...formData,
-        courts: courts.map((court) => ({
-            type: court.type,
-            count: parseInt(court.count, 10),
-        })),
+      ...formData,
+      courts: courts.map((court) => ({
+        type: court.type,
+        count: parseInt(court.count, 10),
+      })),
     };
 
-    console.log("Data to submit:", dataToSubmit);
-
     try {
-        const response = await axios.post("http://localhost:8000/api/clubs/", dataToSubmit, {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-        });
-        setSuccessMessage("Club submitted successfully for approval!");
-        setErrorMessage("");
-        setFormData({
-            name: "",
-            address: "",
-            city: "",
-            state: "",
-            zip_code: "",
-            phone_number: "",
-            email: "",
-            website: "",
-        });
-        setCourts([{ type: "", count: "" }]);
+      const response = await axios.post(
+        "http://localhost:8000/api/clubs/", 
+        dataToSubmit,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      setSuccessMessage("Club submitted successfully for approval!");
+      setErrorMessage("");
+      
+      // Reset form
+      setFormData({
+        name: "",
+        address: "",
+        city: "",
+        state: "",
+        zip_code: "",
+        phone_number: "",
+        email: "",
+        website: "",
+      });
+      setCourts([{ type: "", count: "" }]);
     } catch (error) {
-        console.error("Submission error:", error);
-        setErrorMessage(
-            error.response?.data?.detail || "Failed to submit the club. Please try again."
-        );
-        setSuccessMessage("");
+      console.error("Submission error:", error);
+      setErrorMessage(
+        error.response?.data?.detail || 
+        "Failed to submit the club. Please try again."
+      );
+      setSuccessMessage("");
     }
-};
+  };
 
   const getDropdownOptions = (index) => {
     const selectedTypes = courts.map((court) => court.type);
@@ -92,9 +146,22 @@ export const AddClubForm = () => {
     );
   };
 
+  if (isLoading) {
+    return <div className="loading">Loading...</div>;
+  }
+
+  // If not authenticated, we'll redirect, so we don't need to render anything
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="form-card">
       <h2>Register Your Tennis Club</h2>
+      <p className="approval-note">
+        Note: Your club will be reviewed by an administrator before being published.
+      </p>
+      
       {successMessage && <div className="alert success">{successMessage}</div>}
       {errorMessage && <div className="alert error">{errorMessage}</div>}
 
@@ -159,7 +226,6 @@ export const AddClubForm = () => {
                 required
               />
             </div>
-    
           </div>
           <div className="form-group">
             <label htmlFor="email">Email Address:</label>
@@ -181,6 +247,16 @@ export const AddClubForm = () => {
               value={formData.phone_number}
               onChange={handleChange}
               required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="website">Website (Optional):</label>
+            <input
+              type="url"
+              id="website"
+              name="website"
+              value={formData.website}
+              onChange={handleChange}
             />
           </div>
         </section>

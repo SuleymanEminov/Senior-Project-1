@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
-from .models import Club
+from .models import Club, Court
 
 
 @admin.register(Club)
@@ -16,3 +16,11 @@ class ClubAdmin(admin.ModelAdmin):
     @admin.action(description='Approve selected clubs')
     def approve_clubs(self, request, queryset):
         queryset.update(is_approved=True)
+
+
+@admin.register(Court)
+class CourtAdmin(admin.ModelAdmin):
+    list_display = ('club', 'court_type', 'court_number')
+    list_filter = ('court_type', 'club')
+    search_fields = ('club__name', 'court_type', 'court_number')
+

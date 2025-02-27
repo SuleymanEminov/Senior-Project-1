@@ -20,9 +20,9 @@ class Club(models.Model):
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
     website = models.URLField(null=True, blank=True)
-    courts = models.JSONField(
+    courts_summary = models.JSONField(
         default=list,
-        help_text="Store a list of dictionaries, e.g., [{'type': 'hard', 'count': 3}]"
+        help_text="Store a summary of courts, e.g., [{'type': 'hard', 'count': 3}]"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -30,3 +30,18 @@ class Club(models.Model):
 
     def __str__(self):
         return self.name
+
+class Court(models.Model):
+    COURT_TYPES = [
+        ('hard', 'Hard'),
+        ('clay', 'Clay'),
+        ('grass', 'Grass'),
+    ]
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='court_details')
+    court_type = models.CharField(max_length=20, choices=COURT_TYPES)
+    court_number = models.IntegerField()
+    
+    def __str__(self):
+        return f"{self.club.name} - {self.get_court_type_display()} Court #{self.court_number}"
+
+
