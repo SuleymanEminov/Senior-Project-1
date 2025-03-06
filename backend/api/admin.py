@@ -27,4 +27,3 @@ class CourtAdmin(admin.ModelAdmin):
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
     list_display = ('court', 'user', 'booking_date', 'start_time', 'end_time')
-

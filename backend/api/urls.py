@@ -5,7 +5,8 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from .views import UserViewSet, LogoutView, RegisterView
-from .views.club_views import ClubViewSet, CourtViewSet, BookingViewSet
+from .views.club_views import ClubViewSet, CourtViewSet
+from .views.booking_views import BookingViewSet
 
 # Initialize the router
 router = DefaultRouter()

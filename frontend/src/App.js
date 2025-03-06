@@ -7,7 +7,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Register } from "./components/authentication/Register";
 import { Login } from "./components/authentication/Login";
 import { Logout } from "./components/authentication/Logout";
-import { Book } from "./components/booking/Book";
+import { BookingPage } from "./components/booking/BookingPage";
 import { AddClubForm } from "./components/clubs/AddClubForm";
 import ManagerDashboard from './components/manager/ManagerDashboard';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -30,10 +30,10 @@ function App() {
           
           {/* Protected routes - require authentication */}
           <Route 
-            path="/book" 
+            path="/booking" 
             element={
               <ProtectedRoute>
-                <Book />
+                <BookingPage />
               </ProtectedRoute>
             } 
           />
