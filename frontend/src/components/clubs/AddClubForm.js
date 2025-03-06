@@ -103,7 +103,7 @@ export const AddClubForm = () => {
     };
 
     try {
-      const response = await axios.post(
+      await axios.post(
         "http://localhost:8000/api/clubs/", 
         dataToSubmit,
         {
@@ -294,7 +294,7 @@ export const AddClubForm = () => {
                 onClick={() => removeCourtType(index)}
                 className="btn-remove"
               >
-                <span>✖</span>
+                <span role="img" aria-label="Remove">✖</span>
               </button>
             </div>
           ))}
@@ -304,7 +304,7 @@ export const AddClubForm = () => {
               onClick={addCourtType}
               className="btn-add-court"
             >
-              <span>➕</span> Add Another Court Type
+              <span role="img" aria-label="Add">➕</span> Add Another Court Type
             </button>
           )}
         </section>

@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import interceptor from './interceptors/Interceptor';
+// Import the interceptor to initialize it (no need to assign it to a variable)
+import './interceptors/Interceptor';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

@@ -4,12 +4,15 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from .views import ClubViewSet, UserViewSet, LogoutView, RegisterView
+from .views import UserViewSet, LogoutView, RegisterView
+from .views.club_views import ClubViewSet, CourtViewSet, BookingViewSet
 
 # Initialize the router
 router = DefaultRouter()
 router.register(r'clubs', ClubViewSet, basename='club')  # Handles all club-related operations
-router.register(r'users', UserViewSet, basename='user')  # Example: Handle user-related operations
+router.register(r'courts', CourtViewSet, basename='court')  # Handles all court-related operations
+router.register(r'bookings', BookingViewSet, basename='booking')  # Handles all booking-related operations
+router.register(r'users', UserViewSet, basename='user')  # Handle user-related operations
 
 # Define URL patterns
 urlpatterns = [

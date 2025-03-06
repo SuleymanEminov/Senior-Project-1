@@ -8,7 +8,7 @@ export const Hello = () => {
 
   useEffect(() => {
     // Fetch the current user
-    api.get("http://localhost:8000/api/users/current_user", {
+    api.get("http://localhost:8000/api/users/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
     .then((response) => {
@@ -38,8 +38,8 @@ export const Hello = () => {
       <h1>Hello, {user?.username || "Guest"}</h1>
       <div className="form-signin mt-5 text-center">
         <h1 className="h3 mb-3 fw-normal">Tennis Court Booking</h1>
-        {clubs.length > 0 ? (
-          clubs.map((club) => (
+        {clubs?.results?.length > 0 ? (
+          clubs?.results?.map((club) => (
             <div key={club.id}>
               <h2>{club.name}</h2>
               <p>

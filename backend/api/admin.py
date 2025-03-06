@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
-from .models import Club, Court
+from .models import Club, Court, Booking
 
 
 @admin.register(Club)
@@ -23,4 +23,8 @@ class CourtAdmin(admin.ModelAdmin):
     list_display = ('club', 'court_type', 'court_number')
     list_filter = ('court_type', 'club')
     search_fields = ('club__name', 'court_type', 'court_number')
+
+@admin.register(Booking)
+class BookingAdmin(admin.ModelAdmin):
+    list_display = ('court', 'user', 'booking_date', 'start_time', 'end_time')
 
