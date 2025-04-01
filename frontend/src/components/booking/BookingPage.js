@@ -1,7 +1,8 @@
-// frontend/src/component/booking/BookingPage.js
+// frontend/src/components/booking/BookingPage.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../interceptors/Interceptor';
+import { Container, Row, Col, Card, Alert, Spinner } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Booking.css';
 
@@ -36,7 +37,6 @@ export const BookingPage = () => {
     }
     setIsAuthenticated(true);
     setIsLoading(false);
-    console.log("Authenticated, access token available"); // Debug output
   }, [navigate]);
   
   // Load clubs
@@ -45,11 +45,9 @@ export const BookingPage = () => {
     
     const fetchClubs = async () => {
       try {
-        // Based on your API structure in urls.py
         const response = await api.get('http://localhost:8000/api/clubs/');
-        console.log('Clubs API response:', response.data); // Debug output
         
-        // Handle different potential response formats
+        // Extract clubs data based on response format
         if (Array.isArray(response.data)) {
           setClubs(response.data);
         } else if (response.data && typeof response.data === 'object') {
@@ -76,8 +74,11 @@ export const BookingPage = () => {
     
     const fetchAvailableSlots = async () => {
       setIsLoading(true);
+      setBookingError('');
+      
       try {
         const formattedDate = selectedDate.toISOString().split('T')[0];
+        
         const response = await api.get('http://localhost:8000/api/bookings/available_slots/', {
           params: {
             club_id: selectedClub,
@@ -85,9 +86,26 @@ export const BookingPage = () => {
             date: formattedDate
           }
         });
-        setAvailableSlots(response.data);
+        
+        // Handle the case where the response contains a message (like "club is closed")
+        if (response.data.message) {
+          setBookingError(response.data.message);
+          if (response.data.reason) {
+            setBookingError(`${response.data.message} (${response.data.reason})`);
+          }
+          setAvailableSlots([]);
+        } else {
+          // Ensure it's an array
+          const slotsData = Array.isArray(response.data) ? response.data : [];
+          setAvailableSlots(slotsData);
+        }
       } catch (error) {
-        console.error('Error fetching available slots:', error);
+        if (error.response?.data?.error) {
+          setBookingError(error.response.data.error);
+        } else {
+          setBookingError('Error fetching available time slots. Please try again.');
+        }
+        setAvailableSlots([]);
       } finally {
         setIsLoading(false);
       }
@@ -99,16 +117,19 @@ export const BookingPage = () => {
   const handleClubChange = (clubId) => {
     setSelectedClub(clubId);
     setSelectedSlot(null);
+    setBookingSuccess('');
   };
   
   const handleCourtTypeChange = (courtType) => {
     setSelectedCourtType(courtType);
     setSelectedSlot(null);
+    setBookingSuccess('');
   };
   
   const handleDateChange = (date) => {
     setSelectedDate(date);
     setSelectedSlot(null);
+    setBookingSuccess('');
   };
   
   const handleSlotSelect = (courtId, timeSlot) => {
@@ -120,9 +141,11 @@ export const BookingPage = () => {
   const handleConfirmBooking = async () => {
     try {
       const formattedDate = selectedDate.toISOString().split('T')[0];
-      const response = await api.post('http://localhost:8000/api/bookings/', {
+      
+      // Use the booking endpoint
+      await api.post('http://localhost:8000/api/bookings/', {
         court: selectedCourtId,
-        date: formattedDate,
+        booking_date: formattedDate,
         start_time: selectedSlot.start_time,
         end_time: selectedSlot.end_time
       });
@@ -141,8 +164,13 @@ export const BookingPage = () => {
       });
       
       // Ensure we're handling the response data correctly
-      const slotsData = Array.isArray(slotsResponse.data) ? slotsResponse.data : [];
-      setAvailableSlots(slotsData);
+      if (slotsResponse.data.message) {
+        setBookingError(slotsResponse.data.message);
+        setAvailableSlots([]);
+      } else {
+        const slotsData = Array.isArray(slotsResponse.data) ? slotsResponse.data : [];
+        setAvailableSlots(slotsData);
+      }
     } catch (error) {
       console.error('Error booking court:', error);
       setBookingError(error.response?.data?.error || 'Failed to book court. Please try again.');
@@ -150,60 +178,80 @@ export const BookingPage = () => {
   };
   
   if (isLoading && !clubs.length) {
-    return <div className="loading">Loading...</div>;
+    return (
+      <Container>
+        <div className="text-center p-5">
+          <Spinner animation="border" />
+          <p className="mt-2">Loading...</p>
+        </div>
+      </Container>
+    );
   }
   
   return (
-    <div className="booking-container">
-      <div className="booking-header">
-        <h1>Book a Tennis Court</h1>
-        <p>Select a facility, court type, and date to find available time slots</p>
-      </div>
-      
-      {bookingSuccess && (
-        <div className="alert alert-success">{bookingSuccess}</div>
-      )}
-      
-      {bookingError && (
-        <div className="alert alert-danger">{bookingError}</div>
-      )}
-      
-      <div className="booking-filters">
-        <div className="filter-section club-selector">
-          <ClubSelector 
-            clubs={clubs} 
-            selectedClub={selectedClub} 
-            onSelectClub={handleClubChange} 
-          />
-        </div>
-        
-        {selectedClub && (
-          <div className="filter-section court-type-filter">
-            <CourtTypeFilter 
-              selectedType={selectedCourtType} 
-              onSelectType={handleCourtTypeChange} 
-            />
-          </div>
-        )}
-        
-        {selectedClub && (
-          <div className="filter-section date-selector">
-            <DateSelector 
-              selectedDate={selectedDate} 
-              onSelectDate={handleDateChange} 
-            />
-          </div>
-        )}
-      </div>
-      
-      {selectedClub && (
-        <div className="availability-container">
-          <AvailabilityGrid 
-            availableSlots={availableSlots} 
-            onSelectSlot={handleSlotSelect} 
-          />
-        </div>
-      )}
+    <Container className="mt-4 mb-5">
+      <Card>
+        <Card.Header>
+          <h2 className="mb-0">Book a Tennis Court</h2>
+        </Card.Header>
+        <Card.Body>
+          {bookingSuccess && (
+            <Alert variant="success">{bookingSuccess}</Alert>
+          )}
+          
+          {bookingError && (
+            <Alert variant="danger">{bookingError}</Alert>
+          )}
+          
+          <Row className="mb-4">
+            <Col md={4}>
+              <ClubSelector 
+                clubs={clubs} 
+                selectedClub={selectedClub} 
+                onSelectClub={handleClubChange} 
+              />
+            </Col>
+            
+            {selectedClub && (
+              <Col md={4}>
+                <CourtTypeFilter 
+                  selectedType={selectedCourtType} 
+                  onSelectType={handleCourtTypeChange} 
+                />
+              </Col>
+            )}
+            
+            {selectedClub && (
+              <Col md={4}>
+                <DateSelector 
+                  selectedDate={selectedDate} 
+                  onSelectDate={handleDateChange} 
+                />
+              </Col>
+            )}
+          </Row>
+          
+          {selectedClub && !isLoading && availableSlots.length === 0 && !bookingError && (
+            <Alert variant="info">
+              No available courts found for the selected criteria. Try a different date or court type.
+            </Alert>
+          )}
+          
+          {selectedClub && isLoading ? (
+            <div className="text-center p-4">
+              <Spinner animation="border" />
+              <p className="mt-2">Loading available slots...</p>
+            </div>
+          ) : (
+            <div className="availability-container">
+              <AvailabilityGrid 
+                availableSlots={availableSlots} 
+                onSelectSlot={handleSlotSelect} 
+              />
+            </div>
+          )}
+        </Card.Body>
+      </Card>
       
       {showConfirmation && selectedSlot && (
         <ConfirmationModal 
@@ -214,6 +262,8 @@ export const BookingPage = () => {
           court={availableSlots.find(court => court.court_id === selectedCourtId)}
         />
       )}
-    </div>
+    </Container>
   );
 };
+
+export default BookingPage;

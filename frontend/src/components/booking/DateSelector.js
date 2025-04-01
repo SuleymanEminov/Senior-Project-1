@@ -1,5 +1,6 @@
-// frontend/src/component/booking/DateSelector.js
+// frontend/src/components/booking/DateSelector.js
 import React from 'react';
+import { Form, ButtonGroup, Button } from 'react-bootstrap';
 
 const DateSelector = ({ selectedDate, onSelectDate }) => {
   // Generate next 7 days
@@ -29,24 +30,23 @@ const DateSelector = ({ selectedDate, onSelectDate }) => {
   
   return (
     <div>
-      <h3>Select Date</h3>
-      <div className="date-selector-container">
-        <div className="date-buttons">
-          {dateOptions.map((date) => (
-            <button
-              key={date.toISOString()}
-              className={`btn date-btn ${
-                date.toDateString() === selectedDate.toDateString() 
-                  ? 'btn-primary active' 
-                  : 'btn-outline-primary'
-              }`}
-              onClick={() => onSelectDate(date)}
-            >
-              {formatDate(date)}
-            </button>
-          ))}
+      <Form.Group>
+        <Form.Label><strong>Select Date</strong></Form.Label>
+        <div className="date-selector-container">
+          <ButtonGroup className="d-flex flex-wrap">
+            {dateOptions.map((date) => (
+              <Button
+                key={date.toISOString()}
+                variant={date.toDateString() === selectedDate.toDateString() ? 'primary' : 'outline-primary'}
+                className="date-btn m-1"
+                onClick={() => onSelectDate(date)}
+              >
+                {formatDate(date)}
+              </Button>
+            ))}
+          </ButtonGroup>
         </div>
-      </div>
+      </Form.Group>
     </div>
   );
 };

@@ -1,7 +1,5 @@
-// frontend/src/component/booking/ConfirmationModal.js
 import React from 'react';
-import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
+import { Modal, Button } from 'react-bootstrap';
 
 const ConfirmationModal = ({ slot, date, court, onConfirm, onCancel }) => {
   // Format date for display
@@ -29,7 +27,7 @@ const ConfirmationModal = ({ slot, date, court, onConfirm, onCancel }) => {
       
       <Modal.Body>
         <p>You are about to book the following court:</p>
-        <div className="booking-details">
+        <div className="booking-details p-3 bg-light rounded">
           <p><strong>Date:</strong> {formattedDate}</p>
           <p><strong>Time:</strong> {slot.formatted_time}</p>
           {court && (
@@ -39,7 +37,7 @@ const ConfirmationModal = ({ slot, date, court, onConfirm, onCancel }) => {
             </>
           )}
         </div>
-        <p>Would you like to confirm this reservation?</p>
+        <p className="mt-3">Would you like to confirm this reservation?</p>
       </Modal.Body>
       
       <Modal.Footer>

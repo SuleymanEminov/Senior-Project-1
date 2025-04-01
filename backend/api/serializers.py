@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Club, Court, Booking
+from .models import Club, Court, Booking, CourtAvailabilityRestriction, ClubSpecialHours
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -125,3 +125,53 @@ class BookingSerializer(serializers.ModelSerializer):
             )
             
         return data
+    
+# Add to api/serializers.py
+
+class ClubSpecialHoursSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClubSpecialHours
+        fields = '__all__'
+
+class CourtAvailabilityRestrictionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourtAvailabilityRestriction
+        fields = '__all__'
+
+# Update ClubSerializer to include new fields
+class ClubSerializer(serializers.ModelSerializer):
+    court_details = CourtSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Club
+        fields = [
+            "id",
+            "name",
+            "address",
+            "city",
+            "state",
+            "zip_code",
+            "manager",
+            "phone_number",
+            "email",
+            "website",
+            "courts_summary",
+            "court_details",
+            "opening_time",
+            "closing_time",
+            "min_booking_duration",
+            "max_booking_duration",
+            "booking_increment",
+            "max_advance_booking_days",
+            "same_day_booking_cutoff",
+            "created_at",
+            "updated_at",
+            "is_approved",
+        ]
+        read_only_fields = ['manager', 'is_approved']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            validated_data['manager'] = request.user
+        return super().create(validated_data)

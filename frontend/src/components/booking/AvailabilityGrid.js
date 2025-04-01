@@ -1,5 +1,6 @@
-// frontend/src/component/booking/AvailabilityGrid.js
+// frontend/src/components/booking/AvailabilityGrid.js
 import React from 'react';
+import { Row, Col, Card, Button } from 'react-bootstrap';
 
 const AvailabilityGrid = ({ availableSlots, onSelectSlot }) => {
   // Group courts by type for better organization
@@ -13,11 +14,7 @@ const AvailabilityGrid = ({ availableSlots, onSelectSlot }) => {
   }, {});
   
   if (availableSlots.length === 0) {
-    return (
-      <div className="no-slots-message">
-        <p>No courts available for the selected filters. Please try a different date or court type.</p>
-      </div>
-    );
+    return null;
   }
   
   // Function to get court type display name
@@ -32,42 +29,43 @@ const AvailabilityGrid = ({ availableSlots, onSelectSlot }) => {
   
   return (
     <div>
-      <h2>Available Courts & Time Slots</h2>
+      <h3 className="mb-4">Available Courts & Time Slots</h3>
       
       {Object.entries(groupedCourts).map(([courtType, courts]) => (
-        <div key={courtType} className="court-type-section">
-          <h3 className="court-type-heading">
+        <div key={courtType} className="mb-4">
+          <h4 className="court-type-heading mb-3">
             {getCourtTypeDisplay(courtType)} Courts
-          </h3>
+          </h4>
           
-          <div className="courts-container">
+          <Row>
             {courts.map((court) => (
-              <div key={court.court_id} className="court-card">
-                <h5>
-                  <div className="court-info">
-                    <span className="court-icon">{court.court_number}</span>
-                    Court #{court.court_number}
-                  </div>
-                </h5>
-                
-                <div className="time-slots">
-                  {court.available_slots && court.available_slots.length > 0 ? (
-                    court.available_slots.map((slot, index) => (
-                      <button
-                        key={index}
-                        className="btn btn-outline-success time-slot-btn"
-                        onClick={() => onSelectSlot(court.court_id, slot)}
-                      >
-                        {slot.formatted_time}
-                      </button>
-                    ))
-                  ) : (
-                    <p className="no-slots-message">No available time slots</p>
-                  )}
-                </div>
-              </div>
+              <Col md={6} lg={4} className="mb-3" key={court.court_id}>
+                <Card className="h-100 court-card">
+                  <Card.Header>
+                    <h5 className="mb-0">Court #{court.court_number}</h5>
+                  </Card.Header>
+                  <Card.Body>
+                    <div className="time-slots">
+                      {court.available_slots && court.available_slots.length > 0 ? (
+                        court.available_slots.map((slot, index) => (
+                          <Button
+                            key={index}
+                            variant="outline-success"
+                            className="time-slot-btn m-1"
+                            onClick={() => onSelectSlot(court.court_id, slot)}
+                          >
+                            {slot.formatted_time}
+                          </Button>
+                        ))
+                      ) : (
+                        <p className="no-slots-message">No available time slots</p>
+                      )}
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
             ))}
-          </div>
+          </Row>
         </div>
       ))}
     </div>

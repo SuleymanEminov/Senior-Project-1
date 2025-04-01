@@ -14,16 +14,26 @@ const refreshToken = async () => {
         const response = await axios.post("http://localhost:8000/api/token/refresh/", {
             refresh: refresh,
         });
-        const { access } = response.data;
-        console.log("New access token:", access);
+        
+        // Get both new tokens
+        const { access, refresh: newRefreshToken } = response.data;
+        
+        console.log("New access token received");
+        
+        // Save both tokens
         localStorage.setItem("access_token", access);
+        
+        // If a new refresh token was provided, save it
+        if (newRefreshToken) {
+            console.log("New refresh token received");
+            localStorage.setItem("refresh_token", newRefreshToken);
+        }
+        
         api.defaults.headers.common["Authorization"] = `Bearer ${access}`;
         return true; // Successfully refreshed
     } catch (error) {
         console.error("Failed to refresh token", error.response || error);
         return false; // Failed to refresh
-
-
     }
 };
 

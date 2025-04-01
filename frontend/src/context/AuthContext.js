@@ -28,7 +28,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.refreshToken(refresh);
       if (response.status === 200) {
+        // Save both tokens
         localStorage.setItem('access_token', response.data.access);
+        
+        // If a new refresh token was provided, save it
+        if (response.data.refresh) {
+          localStorage.setItem('refresh_token', response.data.refresh);
+        }
+        
         return true;
       }
       

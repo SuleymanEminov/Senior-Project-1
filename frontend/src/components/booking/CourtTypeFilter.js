@@ -1,5 +1,6 @@
-// frontend/src/component/booking/CourtTypeFilter.js
+// frontend/src/components/booking/CourtTypeFilter.js
 import React from 'react';
+import { Form } from 'react-bootstrap';
 
 const CourtTypeFilter = ({ selectedType, onSelectType }) => {
   const courtTypes = [
@@ -11,18 +12,23 @@ const CourtTypeFilter = ({ selectedType, onSelectType }) => {
   
   return (
     <div>
-      <h3>Court Type</h3>
-      <div className="btn-group">
-        {courtTypes.map((type) => (
-          <button
-            key={type.value}
-            className={`btn ${selectedType === type.value ? 'btn-primary' : 'btn-outline-primary'}`}
-            onClick={() => onSelectType(type.value)}
-          >
-            {type.label}
-          </button>
-        ))}
-      </div>
+      <Form.Group>
+        <Form.Label><strong>Court Type</strong></Form.Label>
+        <div className="d-flex">
+          {courtTypes.map((type) => (
+            <div key={type.value} className="me-2">
+              <Form.Check
+                type="radio"
+                id={`court-type-${type.value}`}
+                label={type.label}
+                name="courtType"
+                checked={selectedType === type.value}
+                onChange={() => onSelectType(type.value)}
+              />
+            </div>
+          ))}
+        </div>
+      </Form.Group>
     </div>
   );
 };

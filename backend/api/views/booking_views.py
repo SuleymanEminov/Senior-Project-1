@@ -66,73 +66,148 @@ class BookingViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-    @action(detail=False, methods=['GET'])
-    def available_slots(self, request):
-        """Get available time slots for courts based on filters"""
-        club_id = request.query_params.get('club_id')
-        court_type = request.query_params.get('court_type')
-        date_str = request.query_params.get('date')
+    # Update api/views/booking_views.py - BookingViewSet.available_slots method
+
+@action(detail=False, methods=['GET'])
+def available_slots(self, request):
+    """Get available time slots for courts based on filters"""
+    club_id = request.query_params.get('club_id')
+    court_type = request.query_params.get('court_type')
+    date_str = request.query_params.get('date')
+    
+    if not club_id:
+        return Response({"error": "Club ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Get the club to access its settings
+    try:
+        club = Club.objects.get(id=club_id)
+    except Club.DoesNotExist:
+        return Response({"error": "Club not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Parse date
+    try:
+        if date_str:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        else:
+            selected_date = datetime.now().date()
+    except ValueError:
+        return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if bookings are allowed for this date
+    today = datetime.now().date()
+    max_date = today + timedelta(days=club.max_advance_booking_days)
+    if selected_date > max_date:
+        return Response({
+            "error": f"Bookings are only allowed up to {club.max_advance_booking_days} days in advance"
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check for special hours
+    special_hours = ClubSpecialHours.objects.filter(club=club, date=selected_date).first()
+    
+    if special_hours and special_hours.is_closed:
+        return Response({
+            "message": f"The club is closed on {selected_date}",
+            "reason": special_hours.reason
+        }, status=status.HTTP_200_OK)
+    
+    # Get opening and closing times for this date
+    if special_hours:
+        opening_time = special_hours.opening_time
+        closing_time = special_hours.closing_time
+    else:
+        opening_time = club.opening_time
+        closing_time = club.closing_time
+    
+    # Convert club hours to datetime objects for easy manipulation
+    opening_dt = datetime.combine(selected_date, opening_time)
+    closing_dt = datetime.combine(selected_date, closing_time)
+    
+    # Calculate time slots based on club's booking increment
+    increment_minutes = club.booking_increment
+    
+    # Query courts based on filters
+    courts_query = Court.objects.filter(club_id=club_id, is_active=True)
+    if court_type and court_type != 'all':
+        courts_query = courts_query.filter(court_type=court_type)
+    
+    # Get all active courts
+    courts = courts_query.all()
+    
+    # Prepare response data structure
+    available_slots = []
+    
+    # Check if selected date is today, for same-day booking cutoff
+    is_today = selected_date == today
+    now = datetime.now()
+    
+    # Get weekday for recurring restrictions
+    weekday = selected_date.weekday()
+    
+    for court in courts:
+        # Get recurring restrictions for this court and weekday
+        recurring_restrictions = court.availability_restrictions.filter(weekday=weekday)
         
-        if not club_id:
-            return Response({"error": "Club ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+        # Get existing bookings for this court on the selected date
+        existing_bookings = Booking.objects.filter(
+            court=court,
+            booking_date=selected_date,
+            status__in=['pending', 'confirmed']
+        )
         
-        # Query courts based on filters
-        courts_query = Court.objects.filter(club_id=club_id)
-        if court_type and court_type != 'all':
-            courts_query = courts_query.filter(court_type=court_type)
+        # Create a list of available time slots for this court
+        court_slots = []
+        
+        # Generate slots from opening to closing time
+        current_time = opening_dt
+        while current_time + timedelta(minutes=increment_minutes) <= closing_dt:
+            slot_start = current_time
+            slot_end = current_time + timedelta(minutes=increment_minutes)
             
-        # Convert date string to date object
-        try:
-            if date_str:
-                selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            else:
-                selected_date = datetime.now().date()
-        except ValueError:
-            return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Get all courts and their reservations
-        courts = courts_query.all()
-        
-        # Get time slots with 1-hour increments (default operating hours: 8AM - 8PM)
-        opening_hour = 8  # 8 AM
-        closing_hour = 20  # 8 PM
-        slot_duration = 1  # 1 hour
-        
-        # Prepare response data structure
-        available_slots = []
-        
-        for court in courts:
-            # Get existing reservations for this court on the selected date
-            existing_reservations = Booking.objects.filter(
-                court=court,
-                date=selected_date
-            )
+            # Check if slot is available (not already booked)
+            is_available = True
             
-            # Create a list of hourly slots
-            court_slots = []
-            for hour in range(opening_hour, closing_hour):
-                start_time = time(hour, 0)
-                end_time = time(hour + slot_duration, 0)
+            # Check for booking conflicts
+            for booking in existing_bookings:
+                booking_start = datetime.combine(selected_date, booking.start_time)
+                booking_end = datetime.combine(selected_date, booking.end_time)
                 
-                # Check if this slot is already booked
-                is_available = not existing_reservations.filter(
-                    Q(start_time__lte=start_time, end_time__gt=start_time) |
-                    Q(start_time__lt=end_time, end_time__gte=end_time) |
-                    Q(start_time__gte=start_time, end_time__lte=end_time)
-                ).exists()
-                
-                if is_available:
-                    court_slots.append({
-                        "start_time": start_time.strftime('%H:%M:%S'),
-                        "end_time": end_time.strftime('%H:%M:%S'),
-                        "formatted_time": f"{hour}:00 - {hour + slot_duration}:00"
-                    })
+                if (slot_start < booking_end and slot_end > booking_start):
+                    is_available = False
+                    break
             
+            # Check for recurring restrictions
+            for restriction in recurring_restrictions:
+                restriction_start = datetime.combine(selected_date, restriction.start_time)
+                restriction_end = datetime.combine(selected_date, restriction.end_time)
+                
+                if (slot_start < restriction_end and slot_end > restriction_start):
+                    is_available = False
+                    break
+            
+            # Check same-day booking cutoff
+            if is_today and club.same_day_booking_cutoff > 0:
+                cutoff_time = slot_start - timedelta(hours=club.same_day_booking_cutoff)
+                if now > cutoff_time:
+                    is_available = False
+            
+            # Add available slot to the list
+            if is_available:
+                court_slots.append({
+                    "start_time": slot_start.time().strftime('%H:%M:%S'),
+                    "end_time": slot_end.time().strftime('%H:%M:%S'),
+                    "formatted_time": f"{slot_start.strftime('%I:%M %p')} - {slot_end.strftime('%I:%M %p')}"
+                })
+            
+            # Move to next time slot
+            current_time += timedelta(minutes=increment_minutes)
+        
+        # Add court to available slots if it has any available slots
+        if court_slots:
             available_slots.append({
                 "court_id": court.id,
                 "court_number": court.court_number,
                 "court_type": court.court_type,
                 "available_slots": court_slots
             })
-        
-        return Response(available_slots)
+    
+    return Response(available_slots)
