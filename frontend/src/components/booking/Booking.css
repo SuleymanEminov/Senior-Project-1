@@ -1,110 +1,129 @@
-/* frontend/src/components/booking/Booking.css */
+/* booking.css */
 .booking-container {
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
 }
 
-.date-btn {
-  min-width: 120px;
-  white-space: nowrap;
-  border-radius: 20px;
-  padding: 8px 16px;
-  transition: all 0.2s ease;
+.booking-card {
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-.date-btn.active {
-  transform: scale(1.05);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+.booking-progress {
+  margin: 20px 0 40px;
 }
 
-.court-type-heading {
-  background-color: #f8f9fa;
-  padding: 10px 15px;
-  border-radius: 5px;
-  margin-bottom: 20px;
-  color: #495057;
-  font-size: 1.3rem;
-  border-left: 4px solid #007bff;
+.step-indicators {
+  position: relative;
+  padding: 0 10px;
+}
+
+.step-indicator {
+  position: relative;
+  width: 60px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #6c757d;
+  padding-top: 15px;
+}
+
+.step-indicator::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 15px;
+  height: 15px;
+  background-color: #e9ecef;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.step-indicator.active::before {
+  background-color: #007bff;
+}
+
+.step-content {
+  padding: 10px 15px 30px;
+}
+
+.step-title {
+  margin-bottom: 10px;
+  color: #343a40;
+}
+
+.step-description {
+  color: #6c757d;
+  margin-bottom: 25px;
 }
 
 .court-card {
+  transition: all 0.2s ease;
+  cursor: pointer;
   border: 1px solid #dee2e6;
-  border-radius: 8px;
-  background-color: white;
-  transition: transform 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .court-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  border-color: #007bff;
 }
 
-.time-slots {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.time-slot-btn {
-  flex: 1 0 calc(33.333% - 8px);
-  min-width: 80px;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  padding: 8px 0;
-  transition: all 0.2s ease;
-}
-
-.time-slot-btn:hover {
-  transform: scale(1.05);
-}
-
-.no-slots-message {
-  color: #6c757d;
-  font-style: italic;
-  padding: 20px 0;
-  text-align: center;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  margin: 20px 0;
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 50vh;
+.court-type-heading {
   font-size: 1.2rem;
+  color: #495057;
+  border-left: 4px solid #007bff;
+  padding-left: 10px;
+  margin-bottom: 15px;
+}
+
+.time-range-selector {
+  background-color: #f8f9fa;
+}
+
+.booking-summary {
+  padding: 10px;
+}
+
+.detail-label {
+  font-weight: 500;
   color: #6c757d;
 }
 
-.booking-details {
-  background-color: #f8f9fa;
-  padding: 15px;
-  border-radius: 5px;
-  margin: 15px 0;
+.detail-value {
+  font-weight: 500;
+  color: #212529;
 }
 
-.booking-details p {
-  margin-bottom: 8px;
+.success-animation {
+  animation: pulse 2s infinite;
 }
 
-.court-info {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
 }
 
-.court-icon {
-  margin-right: 10px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #e9ecef;
-  border-radius: 50%;
-  color: #495057;
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .step-indicator {
+    width: 40px;
+    font-size: 0.7rem;
+  }
+  
+  .booking-container {
+    padding: 10px;
+  }
 }

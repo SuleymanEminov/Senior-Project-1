@@ -28,11 +28,13 @@ class RegisterView(APIView):
 class LogoutView(APIView):
      permission_classes = (IsAuthenticated,)
      def post(self, request):
-          
           try:
-               refresh_token = request.data["refresh_token"]
-               token = RefreshToken(refresh_token)
-               token.blacklist()
-               return Response(status=status.HTTP_204_NO_CONTENT)
+               refresh_token = request.data.get("refresh_token")
+               if refresh_token:
+                   token = RefreshToken(refresh_token)
+                   token.blacklist()
+               # Even if no token is provided, we'll consider the logout successful
+               # since the frontend will clear local storage anyway
+               return Response({"detail": "Successfully logged out"}, status=status.HTTP_200_OK)
           except Exception as e:
-               return Response(status=status.HTTP_400_BAD_REQUEST)
+               return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -32,4 +32,4 @@ services:
         depends_on:
             - backend
 
-        stdin_open: true
+        stdin_open: true # fixed frontend container exiting immediately

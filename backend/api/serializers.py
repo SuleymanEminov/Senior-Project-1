@@ -67,6 +67,7 @@ class ClubSerializer(serializers.ModelSerializer):
             validated_data['manager'] = request.user
         return super().create(validated_data)
 
+# In serializers.py
 class BookingSerializer(serializers.ModelSerializer):
     court_details = CourtSerializer(source='court', read_only=True)
     user_details = UserSerializer(source='user', read_only=True)
@@ -74,23 +75,13 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = [
-            'id', 
-            'court', 
-            'court_details',
-            'user',
-            'user_details',
-            'booking_date', 
-            'start_time', 
-            'end_time', 
-            'created_at',
-            'updated_at',
-            'status',
-            'notes'
+            'id', 'court', 'court_details', 'user', 'user_details',
+            'booking_date', 'start_time', 'end_time', 'status', 'notes'
         ]
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['user', 'status']
     
     def validate(self, data):
-        # Additional validation logic
+        # Ensure end time is after start time
         if data['start_time'] >= data['end_time']:
             raise serializers.ValidationError("End time must be after start time")
         
@@ -99,7 +90,6 @@ class BookingSerializer(serializers.ModelSerializer):
         booking_date = data['booking_date']
         start_time = data['start_time']
         end_time = data['end_time']
-        booking_id = self.instance.id if self.instance else None
         
         overlapping_bookings = Booking.objects.filter(
             court=court,
@@ -107,26 +97,18 @@ class BookingSerializer(serializers.ModelSerializer):
             status__in=['pending', 'confirmed']
         )
         
-        if booking_id:
-            overlapping_bookings = overlapping_bookings.exclude(id=booking_id)
+        # Exclude current booking in case of update
+        if self.instance:
+            overlapping_bookings = overlapping_bookings.exclude(id=self.instance.id)
         
         for booking in overlapping_bookings:
             if (start_time < booking.end_time and end_time > booking.start_time):
                 raise serializers.ValidationError(
-                    f"Booking conflict: Court already booked from "
-                    f"{booking.start_time} to {booking.end_time}"
+                    f"This court is already booked from {booking.start_time} to {booking.end_time}"
                 )
         
-        # Check if booking is within club operating hours
-        if start_time < court.club.opening_time or end_time > court.club.closing_time:
-            raise serializers.ValidationError(
-                f"Booking must be within club hours: "
-                f"{court.club.opening_time} - {court.club.closing_time}"
-            )
-            
         return data
     
-# Add to api/serializers.py
 
 class ClubSpecialHoursSerializer(serializers.ModelSerializer):
     class Meta:

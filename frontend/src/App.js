@@ -22,8 +22,7 @@ function App() {
         <Navigation />
         <Routes>
           {/* Public routes */}
-          <Route path="/" element={<Hello />} />
-          <Route path="/hello" element={<Hello />} />
+          <Route path="/" element={<BookingPage />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
