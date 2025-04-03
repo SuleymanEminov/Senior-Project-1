@@ -1,0 +1,26 @@
+.profile-avatar {
+    margin-bottom: 20px;
+  }
+  
+  .avatar-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .stat-item {
+    padding: 8px 0;
+  }
+  
+  .card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-header {
+    font-weight: 500;
+  }

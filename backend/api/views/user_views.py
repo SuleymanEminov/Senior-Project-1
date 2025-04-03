@@ -83,3 +83,31 @@ class UserViewSet(viewsets.ModelViewSet):
             )
         
         return super().destroy(request, *args, **kwargs)
+    
+    @action(detail=False, methods=["GET", "PUT"], permission_classes=[IsAuthenticated])
+    def profile(self, request):
+        """Get or update current user profile"""
+        user = request.user
+        
+        if request.method == "GET":
+            serializer = self.get_serializer(user)
+            data = serializer.data
+            
+            # Add groups to the response
+            data['groups'] = list(user.groups.values_list('name', flat=True))
+            
+            # Add bookings count
+            data['bookings_count'] = user.bookings.count() if hasattr(user, 'bookings') else 0
+            
+            return Response(data)
+        
+        elif request.method == "PUT":
+            serializer = self.get_serializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                # Don't allow username changes
+                if 'username' in serializer.validated_data:
+                    del serializer.validated_data['username']
+                
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,7 +1,6 @@
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Hello } from "./components/Hello";
 import { Navigation } from "./components/Navigation/Navigation";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Register } from "./components/authentication/Register";
@@ -12,6 +11,7 @@ import { AddClubForm } from "./components/clubs/AddClubForm";
 import ManagerDashboard from './components/manager/ManagerDashboard';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
+import { UserProfile } from './components/user/UserProfile';
 
 function App() {
   document.title = "Tennis Court Booking";
@@ -52,6 +52,15 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['Manager', 'Admin']}>
                 <ManagerDashboard />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <UserProfile />
               </ProtectedRoute>
             } 
           />

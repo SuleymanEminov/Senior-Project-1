@@ -162,6 +162,14 @@ export const AuthProvider = ({ children }) => {
     return currentUser.groups.includes(role);
   }, [currentUser]);
 
+  // Update current user data
+   const updateCurrentUser = useCallback((userData) => {
+    setCurrentUser(prev => ({
+      ...prev,
+      ...userData
+    }));
+  }, []);
+
   const value = {
     currentUser,
     loading,
@@ -169,6 +177,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateCurrentUser,
     userHasRole,
     isManager: useCallback(() => userHasRole('Manager'), [userHasRole]),
     isAdmin: useCallback(() => userHasRole('Admin'), [userHasRole]),

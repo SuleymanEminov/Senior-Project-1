@@ -3,10 +3,28 @@ from django.contrib.auth.models import User
 from .models import Club, Court, Booking, CourtAvailabilityRestriction, ClubSpecialHours
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False)
+    
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
-
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'password']
+        read_only_fields = ['username']  # Prevent username changes
+    
+    def update(self, instance, validated_data):
+        # Handle password updates separately
+        password = validated_data.pop('password', None)
+        
+        # Update other fields
+        instance = super().update(instance, validated_data)
+        
+        # Update password if provided
+        if password:
+            instance.set_password(password)
+            instance.save()
+        
+        return instance
+    
+    
 class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True)
 
