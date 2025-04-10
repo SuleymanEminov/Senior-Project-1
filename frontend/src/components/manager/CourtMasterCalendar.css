@@ -1,0 +1,100 @@
+/* frontend/src/components/manager/CourtMasterCalendar.css */
+.court-master-calendar-container {
+    overflow-x: auto;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+  }
+  
+  .time-column {
+    position: sticky;
+    left: 0;
+    background-color: white;
+    z-index: 10;
+  }
+  
+  .court-group {
+    min-width: 150px;
+  }
+  
+  .court-column {
+    min-width: 120px;
+  }
+  
+  .booking-cell {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+  
+  .booking-cell:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    position: relative;
+  }
+  
+  .time-slot, .time-cell {
+    height: 30px !important;
+  }
+  
+  /* Alternating row colors for better readability */
+  .time-slot:nth-child(even), 
+  .time-cell:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .time-slot:nth-child(4n+1), 
+  .time-cell:nth-child(4n+1) {
+    border-bottom: 2px solid #dee2e6 !important; /* Hour markers */
+  }
+  
+  /* Status indicator colors */
+  .status-confirmed {
+    background-color: #28a745 !important;
+  }
+  
+  .status-pending {
+    background-color: #ffc107 !important;
+  }
+  
+  .status-canceled {
+    background-color: #dc3545 !important;
+  }
+  
+  .status-completed {
+    background-color: #6c757d !important;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .court-master-calendar-container {
+      font-size: 0.8rem;
+    }
+    
+    .time-column {
+      min-width: 60px;
+    }
+    
+    .court-column {
+      min-width: 100px;
+    }
+  }
+  
+  /* Legend for booking status */
+  .booking-legend {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+  }
+  
+  .legend-color {
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    margin-right: 5px;
+  }

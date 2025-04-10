@@ -1,5 +1,5 @@
 // Updated BookingPage.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Card, Alert, Spinner, Button, ProgressBar } from 'react-bootstrap';
 import api from '../../interceptors/Interceptor';
 import ClubSelector from './ClubSelector';
@@ -87,9 +87,9 @@ export const BookingPage = () => {
   };
   
   // Handle time range selection
-  const handleTimeRangeSelect = (timeRange) => {
+  const handleTimeRangeSelect = useCallback((timeRange) => {
     setSelectedTimeRange(timeRange);
-  };
+  }, []);  // Empty dependency array since it doesn't depend on any values
   
   // Handle confirming the booking
   const handleConfirmBooking = async () => {
